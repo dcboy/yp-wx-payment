@@ -1,5 +1,5 @@
 # 微信支付 for nodejs
-[![travis][travis]][travis-u] [![npm][npm]][npm-u] [![node][node]][node-u] [![issues][issues]][issues-u] [![commit][commit]][commit-u]
+
 
 - `中间件` - 支付结果通知, 退款结果通知
 - `获取前端支付参数` - 支持JSSDK, WeixinJSBridge, 小程序, APP
@@ -325,20 +325,3 @@ api.redpackQuery({
 ```
 ##### 相关默认值:
 - `bill_type` - MCHT
-
-[travis]: https://img.shields.io/travis/befinal/node-tenpay.svg
-[travis-u]: https://travis-ci.org/befinal/node-tenpay
-
-[npm]: https://img.shields.io/npm/v/tenpay.svg
-[npm-u]: https://www.npmjs.com/package/tenpay
-
-[node]: https://img.shields.io/node/v/tenpay.svg
-[node-u]: https://nodejs.org/en/download/
-
-[commit]: https://img.shields.io/github/last-commit/befinal/node-tenpay.svg
-[commit-u]: https://github.com/befinal/node-tenpay/commits/master
-
-[issues]: https://img.shields.io/github/issues/befinal/node-tenpay.svg
-[issues-u]: https://github.com/befinal/node-tenpay/issues
-
-[downloads]: https://img.shields.io/npm/dm/tenpay.svg
