@@ -13,18 +13,19 @@ describe('订单相关', () => {
   let id = Date.now();
   let notify_url = '';
 
-  // it.skip('刷脸authinfo', async () => {
-  //   let res = await api.facepayAuthInfo({
-  //     store_id: '123',
-  //     store_name: '123',
-  //     device_id: '123',
-  //     rawdata: 'Z0ORMHoApFAfqtUczKD7J6EWO1Inf+G6Jw1g39q+mWwddVOczRFEKpCuTk+h86t9MjLNgZeK6UHZP8QmYRJJ+nt6m3K7IeUPRUXJYYlW8nEHT0KbwPpDgAiSkP4OjtJhidJvElCBWSN5CGPAec6mU+fhTKdyz1xfztI/kFC7z/bnn0UwXi9HONqQiuFq/FlxRNkCNtmlyXHn3u4GpG3Al1zGqdccf4YVCKMLADsSVxGQbVVQNG17d4tJpCgo3sJHU9ihdjawcC5OJk3IeUxu+EnrTyvRA885BYytXB9EqwPpn1f2ewpYtJKwG4ktfkt3Q69zoXOCNeUG1sp31k+20JvcBSddVaoo3GG5wvfJgSicQ44TFxxg5ftoGLQtcEsQDM0sEQNYJbzxtSXivYgZt1J/xk8KGH99yKk5eznUM6vhRfF4Cpd54J43PQ==',
-  //     sub_mch_id: config.sub_mchid,
-  //     now: Math.round((new Date()).getTime() / 1000),
-  //   });
-  //   console.log(res);
-  //   assert.ok(res.return_code === 'SUCCESS');
-  // });
+  it('刷脸authinfo', async () => {
+    let res = await api.facepayAuthInfo({
+      store_id: '123',
+      store_name: '123',
+      device_id: '123',
+      rawdata: '3bvvkL2zeNNKpX0hloVk09wmvjGMVl2Pe7F7uU795FvHMxmWFqosNGDFUlxtTxdnYxUJWH+3aIsWq+ab1qltSkJzxhVgVEdGE/+xbUNn9hMacjdY4Ji3aDl1l8nC1OM9lb8jP9S2/xJR9o1Bk+8M1uLmS7iohFAZpEzgRetgs5GWFp/E1anibLfY3zkfLsbwkZuNbDUH2zo/n9yTHfm20QFwxfpWWswML0W77imqJFTABJlgHWnYZUnK+mtixKgTwpKdv4qwz9IfSsAsOfDiK1B+xa/iFfE+v8PgyYv7alGvj+kY83YVQqQ5hZzU/pr/HbAEpKam8QqRiPz3Y8Q3XkI2SjFM1g/uJdmFHS8EatGIWtshkczVrlkeWNntAnjb/jMoeCAKQoEYRl6SdHVbQbxqfArQKXe/gADWC1bmDvU2sa4cA4gwOXGUyw==',
+      // sub_mch_id: config.sub_mchid,
+      mch_id: config.mchid,
+      now: Math.round((new Date()).getTime() / 1000),
+    });
+    console.log(res);
+    assert.ok(res.return_code === 'SUCCESS');
+  });
 
   /** 
 { return_code: 'SUCCESS',
@@ -48,20 +49,20 @@ describe('订单相关', () => {
   cash_fee_type: 'CNY',
   promotion_detail: '{}' }
   */
-  it('刷脸支付', async () => {
-    let res = await api.facepay({
-      openid: 'oA0rgwVzjab4kgOuysZ0KMOEwN-8',
-      sub_mch_id: config.sub_mchid,
-      spbill_create_ip: '127.0.0.1',
-      total_fee: 1,
-      body: '商品名称',
-      face_code: 'f7444e21-51be-4c5c-a204-abc022b0fdec',
-      out_trade_no: '123-cc',
-    });
-    console.log('facepay', res);
-    assert.ok(res.return_code === 'SUCCESS');
-    assert.ok(res.result_code === 'SUCCESS');
-  });
+  // it('刷脸支付', async () => {
+  //   let res = await api.facepay({
+  //     openid: 'oA0rgwVzjab4kgOuysZ0KMOEwN-8',
+  //     sub_mch_id: config.sub_mchid,
+  //     spbill_create_ip: '127.0.0.1',
+  //     total_fee: 1,
+  //     body: '商品名称',
+  //     face_code: 'f7444e21-51be-4c5c-a204-abc022b0fdec',
+  //     out_trade_no: '123-cc',
+  //   });
+  //   console.log('facepay', res);
+  //   assert.ok(res.return_code === 'SUCCESS');
+  //   assert.ok(res.result_code === 'SUCCESS');
+  // });
 
   // it.skip('H5/小程序支付参数(自动下单): getPayParams', async () => {
   //   let res = await api.getPayParams({
