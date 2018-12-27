@@ -13,19 +13,29 @@ describe('订单相关', () => {
   let id = Date.now();
   let notify_url = '';
 
-  it('刷脸authinfo', async () => {
-    let res = await api.facepayAuthInfo({
-      store_id: '123',
-      store_name: '123',
-      device_id: '123',
-      rawdata: '3bvvkL2zeNNKpX0hloVk09wmvjGMVl2Pe7F7uU795FvHMxmWFqosNGDFUlxtTxdnYxUJWH+3aIsWq+ab1qltSkJzxhVgVEdGE/+xbUNn9hMacjdY4Ji3aDl1l8nC1OM9lb8jP9S2/xJR9o1Bk+8M1uLmS7iohFAZpEzgRetgs5GWFp/E1anibLfY3zkfLsbwkZuNbDUH2zo/n9yTHfm20QFwxfpWWswML0W77imqJFTABJlgHWnYZUnK+mtixKgTwpKdv4qwz9IfSsAsOfDiK1B+xa/iFfE+v8PgyYv7alGvj+kY83YVQqQ5hZzU/pr/HbAEpKam8QqRiPz3Y8Q3XkI2SjFM1g/uJdmFHS8EatGIWtshkczVrlkeWNntAnjb/jMoeCAKQoEYRl6SdHVbQbxqfArQKXe/gADWC1bmDvU2sa4cA4gwOXGUyw==',
-      // sub_mch_id: config.sub_mchid,
+  it('获取unionid', async () => {
+    let res = await api.queryUnionID({
+      out_trade_no: 'OD181225154754142602',
+      openid: config.openid,
       mch_id: config.mchid,
-      now: Math.round((new Date()).getTime() / 1000),
     });
     console.log(res);
     assert.ok(res.return_code === 'SUCCESS');
   });
+
+  // it('刷脸authinfo', async () => {
+  //   let res = await api.facepayAuthInfo({
+  //     store_id: '123',
+  //     store_name: '123',
+  //     device_id: '123',
+  //     rawdata: '3bvvkL2zeNNKpX0hloVk09wmvjGMVl2Pe7F7uU795FvHMxmWFqosNGDFUlxtTxdnYxUJWH+3aIsWq+ab1qltSkJzxhVgVEdGE/+xbUNn9hMacjdY4Ji3aDl1l8nC1OM9lb8jP9S2/xJR9o1Bk+8M1uLmS7iohFAZpEzgRetgs5GWFp/E1anibLfY3zkfLsbwkZuNbDUH2zo/n9yTHfm20QFwxfpWWswML0W77imqJFTABJlgHWnYZUnK+mtixKgTwpKdv4qwz9IfSsAsOfDiK1B+xa/iFfE+v8PgyYv7alGvj+kY83YVQqQ5hZzU/pr/HbAEpKam8QqRiPz3Y8Q3XkI2SjFM1g/uJdmFHS8EatGIWtshkczVrlkeWNntAnjb/jMoeCAKQoEYRl6SdHVbQbxqfArQKXe/gADWC1bmDvU2sa4cA4gwOXGUyw==',
+  //     // sub_mch_id: config.sub_mchid,
+  //     mch_id: config.mchid,
+  //     now: Math.round((new Date()).getTime() / 1000),
+  //   });
+  //   console.log(res);
+  //   assert.ok(res.return_code === 'SUCCESS');
+  // });
 
   /** 
 { return_code: 'SUCCESS',
