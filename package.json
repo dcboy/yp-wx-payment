@@ -4,6 +4,8 @@
   "description": "微信支付 for nodejs",
   "main": "./lib",
   "scripts": {
+    "prebuild": "rm -rf lib/*",
+    "build": "./node_modules/.bin/babel --out-dir=lib src",
     "test": "mocha"
   },
   "repository": {
@@ -25,12 +27,24 @@
   "bugs": {
     "url": "https://github.com/dcboy/yp-wx-payment/issues"
   },
+  "pre-commit": [
+    "build"
+  ],
   "homepage": "https://github.com/dcboy/yp-wx-payment#readme",
   "dependencies": {
-    "urllib": "^2.26.0",
+    "request": "^2.88.0",
+    "request-promise": "^4.2.4",
     "xml2js": "^0.4.19"
   },
   "devDependencies": {
-    "mocha": "^4.1.0"
+    "babel-cli": "^6.26.0",
+    "babel-eslint": "8.2.6",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-preset-env": "^1.6.1",
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "2.13.0",
+    "mocha": "^4.1.0",
+    "pre-commit": "^1.2.2"
   }
 }

@@ -1,27 +1,50 @@
-const tenpay = require('../lib');
+const tenpay = require('../src/wx-payment');
+const fs = require('fs');
+const path = require('path');
+
 const config = process.env.TESTER == 'travis' ? {
   appid: process.env.appid || '0',
   mchid: process.env.mchid || '0',
   partnerKey: process.env.partnerKey || '0',
   openid: process.env.openid || '0'
 } : require('../config');
+
 console.log(config);
-const api = new tenpay(config);
+const pfxFile = path.resolve(__dirname, '../config/apiclient_cert.p12');
+if (fs.existsSync(pfxFile)) {
+  config.pfx = fs.readFileSync(pfxFile)
+}
+
+const api = new tenpay(config, true);
 
 const assert = require('assert');
 describe('订单相关', () => {
   let id = Date.now();
-  let notify_url = '';
+  let notify_url = 'http://d9b274dd.ngrok.io';
 
-  it('获取unionid', async () => {
-    let res = await api.queryUnionID({
-      out_trade_no: 'OD181225154754142602',
-      openid: config.openid,
-      mch_id: config.mchid,
-    });
-    console.log(res);
-    assert.ok(res.return_code === 'SUCCESS');
-  });
+  // it('小微商户-申请入驻', async () => {
+  //   let res = await api.applymentMicroSubmit({
+  //     id_card_name: 'id_card_nameid_card_nameid_card_name'
+  //   });
+  //   console.log(res);
+  //   // assert.ok(res.return_code === 'SUCCESS');
+  // });
+
+  // it('获取证书', async () => {
+  //   let res = await api.getCertficates();
+  //   console.log(res);
+  //   assert.ok(res.return_code === 'SUCCESS');
+  // });
+
+  // it('获取unionid', async () => {
+  //   let res = await api.queryUnionID({
+  //     out_trade_no: 'OD181225154754142602',
+  //     openid: config.openid,
+  //     mch_id: config.mchid,
+  //   });
+  //   console.log(res);
+  //   assert.ok(res.return_code === 'SUCCESS');
+  // });
 
   // it('刷脸authinfo', async () => {
   //   let res = await api.facepayAuthInfo({
@@ -104,7 +127,8 @@ describe('订单相关', () => {
   //     body: '商品简单描述',
   //     total_fee: 100,
   //     notify_url: notify_url,
-  //     openid: config.openid
+  //     openid: config.openid,
+  //     sub_mch_id: config.sub_mchid,
   //   });
   //   console.log('unifiedOrder', res);
   //   assert.ok(res.return_code === 'SUCCESS');
@@ -138,7 +162,8 @@ describe('订单相关', () => {
 
   // it('订单查询: orderQuery', async () => {
   //   let res = await api.orderQuery({
-  //     out_trade_no: id
+  //     out_trade_no: 'OD190313141329523958',
+  //     sub_mch_id: config.sub_mchid,
   //   });
   //   console.log('orderQuery', res);
   //   assert.ok(res.return_code === 'SUCCESS');
@@ -155,34 +180,35 @@ describe('订单相关', () => {
   // });
 });
 
-// describe('退款相关', () => {
-//   it.skip('申请退款: refund', async () => {
-//     let res = await api.refund({
-//       out_trade_no: '1711185583256741',
-//       out_refund_no: 'REFUND_1711185583256741',
-//       total_fee: 1,
-//       refund_fee: 1
-//     });
-//     assert.ok(res.return_code === 'SUCCESS');
-//     assert.ok(res.result_code === 'SUCCESS');
-//   });
+describe('退款相关', () => {
+  // it('申请退款: refund', async () => {
+  //   let res = await api.refund({
+  //     out_trade_no: 'OD190313141329523958',
+  //     out_refund_no: 'OD190313141329523958',
+  //     sub_mch_id: config.sub_mchid,
+  //     total_fee: 10,
+  //     refund_fee: 10
+  //   });
+  //   assert.ok(res.return_code === 'SUCCESS');
+  //   assert.ok(res.result_code === 'SUCCESS');
+  // });
 
-//   it.skip('退款查询: refundQuery - out_trade_no', async () => {
-//     let res = await api.refundQuery({
-//       out_trade_no: '1711185583256741'
-//     });
-//     assert.ok(res.return_code === 'SUCCESS');
-//     assert.ok(res.result_code === 'SUCCESS');
-//   });
+  //   it.skip('退款查询: refundQuery - out_trade_no', async () => {
+  //     let res = await api.refundQuery({
+  //       out_trade_no: '1711185583256741'
+  //     });
+  //     assert.ok(res.return_code === 'SUCCESS');
+  //     assert.ok(res.result_code === 'SUCCESS');
+  //   });
 
-//   it.skip('退款查询: refundQuery - out_refund_no', async () => {
-//     let res = await api.refundQuery({
-//       out_refund_no: 'REFUND_1711185583256741'
-//     });
-//     assert.ok(res.return_code === 'SUCCESS');
-//     assert.ok(res.result_code === 'SUCCESS');
-//   });
-// });
+  //   it.skip('退款查询: refundQuery - out_refund_no', async () => {
+  //     let res = await api.refundQuery({
+  //       out_refund_no: 'REFUND_1711185583256741'
+  //     });
+  //     assert.ok(res.return_code === 'SUCCESS');
+  //     assert.ok(res.result_code === 'SUCCESS');
+  //   });
+});
 
 // describe('企业付款相关', () => {
 //   let id = 'T1514732081550';
