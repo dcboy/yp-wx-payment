@@ -6,7 +6,7 @@
   "scripts": {
     "prebuild": "rm -rf lib/*",
     "build": "./node_modules/.bin/babel --out-dir=lib src",
-    "test": "mocha",
+    "test": "mocha --require babel-register",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0"
   },
   "repository": {
@@ -33,6 +33,7 @@
   ],
   "homepage": "https://github.com/dcboy/yp-wx-payment#readme",
   "dependencies": {
+    "md5-file": "^4.0.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.4",
     "xml2js": "^0.4.19"
