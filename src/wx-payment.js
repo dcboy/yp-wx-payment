@@ -1,6 +1,9 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-console */
-const request = require('request-promise');
-const util = require('./util');
+import request from 'request-promise';
+import fs from 'fs';
+import md5File from 'md5-file/promise';
+import util from './util';
 
 const URLS = {
   micropay: 'https://api.mch.weixin.qq.com/pay/micropay',
@@ -21,6 +24,8 @@ const URLS = {
   queryunionid: 'https://api.mch.weixin.qq.com/pay/queryunionid',
   getcertficates: 'https://api.mch.weixin.qq.com/risk/getcertficates',
   applymentmicrosubmit: 'https://api.mch.weixin.qq.com/applyment/micro/submit',
+  applymentmicrogetstate: 'https://api.mch.weixin.qq.com/applyment/micro/getstate',
+  uploadmedia: 'https://api.mch.weixin.qq.com/secapi/mch/uploadmedia',
 };
 
 /**
@@ -30,13 +35,7 @@ const URLS = {
  */
 class Payment {
   constructor({
-    appid,
-    mchid,
-    partnerKey,
-    pfx,
-    notify_url,
-    spbill_create_ip,
-    certificates,
+    appid, mchid, partnerKey, pfx, notify_url, spbill_create_ip,
   } = {}, debug = false) {
     if (!appid) throw new Error('MISSING_APPID');
     if (!mchid) throw new Error('MISSING_MCHID');
@@ -48,8 +47,8 @@ class Payment {
     this.notify_url = notify_url;
     this.spbill_create_ip = spbill_create_ip || '127.0.0.1';
     this.debug = debug;
+
     // 平台证书 https://pay.weixin.qq.com/wiki/doc/api/xiaowei.php?chapter=19_11#menu1
-    this.certificates = certificates;
 
     this.parseBill = async (xml, format) => {
       if (util.checkXML(xml)) {
@@ -90,8 +89,10 @@ class Payment {
     }
 
     switch (type) {
-      case 'facepayAuthInfo':
-        break;
+      case 'uploadmedia':
+      case 'applymentmicrosubmit':
+      case 'applymentmicrogetstate':
+        return json;
       default:
         if (json.result_code !== 'SUCCESS') {
           throw new Error(json.err_code || 'XMLDataError');
@@ -145,6 +146,40 @@ class Payment {
     return util.hmac(str, this.partnerKey).toUpperCase();
   }
 
+  /**
+   * 上传文件
+   * @param {*} formData
+   * @param {*} param1
+   */
+  async postFile(formData, {
+    type,
+    cert = false,
+  } = {}) {
+    // 创建请求参数
+    const options = {
+      method: 'POST',
+      uri: URLS[type],
+      timeout: 60000, // 60秒超时
+      formData,
+    };
+
+    if (cert) {
+      options.agentOptions = {
+        pfx: this.pfx,
+        passphrase: this.mchid,
+      };
+    }
+
+    let body = false;
+    try {
+      body = await request(options);
+    } catch (e) {
+      throw new Error('request fail');
+    }
+
+    return this.parseBody(body, type);
+  }
+
   async post(params, {
     type,
     needs = [],
@@ -177,6 +212,7 @@ class Payment {
     try {
       body = await request(options);
     } catch (e) {
+      console.log(e);
       throw new Error('request fail');
     }
 
@@ -184,32 +220,89 @@ class Payment {
   }
 
   /**
+   * 上传图片
+   * https://pay.weixin.qq.com/wiki/doc/api/xiaowei.php?chapter=19_9
+   * @param {string} filepath
+   * @memberof Payment
+   */
+  async uploadMedia(filePath) {
+    // 获取文件的md5
+    const media_hash = await md5File(filePath);
+
+    // 计算签名
+    const sign = this.getHmacSign({
+      mch_id: this.mchid,
+      media_hash,
+      sign_type: 'HMAC-SHA256',
+    });
+
+    const formData = {
+      sign,
+      mch_id: this.mchid,
+      sign_type: 'HMAC-SHA256',
+      media_hash,
+      media: fs.createReadStream(filePath),
+    };
+
+    return this.postFile(formData, {
+      type: 'uploadmedia',
+      cert: true,
+    });
+  }
+
+  /**
+  * 微小商户-查询申请状态
+  * https://pay.weixin.qq.com/wiki/doc/api/xiaowei.php?chapter=19_3
+  */
+  async applymentMicroGetState(params) {
+    const pkg = Object.assign({}, params, {
+      version: '1.0',
+      mch_id: this.mchid,
+      nonce_str: util.generate(),
+      sign_type: 'HMAC-SHA256',
+    });
+
+    const needs = ['applyment_id|business_code'];
+
+    return this.post(pkg, {
+      type: 'applymentmicrogetstate',
+      needs,
+      cert: true,
+    });
+  }
+
+  /**
    * 微小商户-申请入驻
    * https://pay.weixin.qq.com/wiki/doc/api/xiaowei.php?chapter=19_2
    */
-  async applymentMicroSubmit(params) {
+  async applymentMicroSubmit(params, certSn, publicKey) {
     const pkg = Object.assign({}, params, {
       version: '3.0',
-      cert_sn: this.cert_sn,
+      cert_sn: certSn,
       mch_id: this.mchid,
       nonce_str: util.generate(),
       sign_type: 'HMAC-SHA256',
     });
 
     // 部分字段需要脱敏
-    // const encryptKeys = ['id_card_name', 'id_card_number', 'account_name', 'account_number', 'contact', 'contact_phone', 'contact_email'];
-    // encryptKeys.map((key) => {
-    //   if (pkg[key]) {
-    //     // do encrypt
-    //     console.log(`encrypt:${pkg[key]}`);
-    //   }
-    // });
+    const encryptKeys = ['id_card_name', 'id_card_number', 'account_name', 'account_number', 'contact', 'contact_phone', 'contact_email'];
+    encryptKeys.forEach((key) => {
+      if (pkg[key]) {
+        // do encrypt
+        pkg[key] = util.encryptRSAPublicKey(pkg[key], publicKey);
+      }
+    });
 
-    const needs = ['business_code', 'id_card_copy', 'id_card_national', 'id_card_name', 'id_card_number', 'id_card_valid_time', 'account_name', 'account_bank', 'bank_address_code', 'bank_name', 'account_number', 'store_name', 'store_address_code', 'store_street', 'store_entrance_pic', 'indoor_pic', 'merchant_shortname', 'service_phone', 'product_desc', 'rate', 'contact', 'contact_phone'];
+    const needs = ['business_code', 'id_card_copy', 'id_card_national', 'id_card_name', 'id_card_number',
+      'id_card_valid_time', 'account_name', 'account_bank', 'bank_address_code',
+      'account_number', 'store_name', 'store_address_code', 'store_street', 'store_entrance_pic',
+      'indoor_pic', 'merchant_shortname', 'service_phone', 'product_desc', 'rate', 'contact', 'contact_phone'];
 
+    // console.log(pkg);
     return this.post(pkg, {
       type: 'applymentmicrosubmit',
       needs,
+      cert: true,
     });
   }
 
@@ -230,7 +323,9 @@ class Payment {
     });
 
     // 处理解密
-    const [certificates] = JSON.parse(result.certificates).data;
+    let [certificates] = JSON.parse(result.certificates).data;
+    // 证书解密处理
+    certificates = util.decryptCertificates(this.partnerKey, certificates);
 
     return certificates;
   }
