@@ -25,6 +25,7 @@ const URLS = {
   getcertficates: 'https://api.mch.weixin.qq.com/risk/getcertficates',
   applymentmicrosubmit: 'https://api.mch.weixin.qq.com/applyment/micro/submit',
   applymentmicrogetstate: 'https://api.mch.weixin.qq.com/applyment/micro/getstate',
+  applymentmicrosubmitupgrade: 'https://api.mch.weixin.qq.com/applyment/micro/submitupgrade',
   uploadmedia: 'https://api.mch.weixin.qq.com/secapi/mch/uploadmedia',
 };
 
@@ -92,6 +93,7 @@ class Payment {
       case 'uploadmedia':
       case 'applymentmicrosubmit':
       case 'applymentmicrogetstate':
+      case 'applymentmicrosubmitupgrade':
         return json;
       default:
         if (json.result_code !== 'SUCCESS') {
@@ -251,6 +253,38 @@ class Payment {
   }
 
   /**
+  * 微小商户-提交升级申请单接口
+  * https://pay.weixin.qq.com/wiki/doc/api/xiaowei.php?chapter=28_2&index=2
+  */
+  async applymentMicroSubmitUpgrade(params, publicKey) {
+    const pkg = Object.assign({}, params, {
+      version: '1.0',
+      mch_id: this.mchid,
+      nonce_str: util.generate(),
+      sign_type: 'HMAC-SHA256',
+    });
+
+    const needs = ['cert_sn', 'sub_mch_id', 'organization_type', 'business_license_copy',
+      'business_license_number', 'merchant_name', 'company_address', 'legal_person', 'business_time',
+      'business_licence_type', 'business', 'business_scene'];
+
+    // 部分字段需要脱敏
+    const encryptKeys = ['legal_person'];
+    encryptKeys.forEach((key) => {
+      if (pkg[key]) {
+        // do encrypt
+        pkg[key] = util.encryptRSAPublicKey(pkg[key], publicKey);
+      }
+    });
+
+    return this.post(pkg, {
+      type: 'applymentmicrosubmitupgrade',
+      needs,
+      cert: true,
+    });
+  }
+
+  /**
   * 微小商户-查询申请状态
   * https://pay.weixin.qq.com/wiki/doc/api/xiaowei.php?chapter=19_3
   */
@@ -275,10 +309,9 @@ class Payment {
    * 微小商户-申请入驻
    * https://pay.weixin.qq.com/wiki/doc/api/xiaowei.php?chapter=19_2
    */
-  async applymentMicroSubmit(params, certSn, publicKey) {
+  async applymentMicroSubmit(params, publicKey) {
     const pkg = Object.assign({}, params, {
       version: '3.0',
-      cert_sn: certSn,
       mch_id: this.mchid,
       nonce_str: util.generate(),
       sign_type: 'HMAC-SHA256',
